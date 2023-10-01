@@ -8,7 +8,7 @@ from litestar.plugins import InitPluginProtocol
 if TYPE_CHECKING:
     from litestar.config.app import AppConfig
 
-    from .config import AsyncpgConfig
+    from litestar_asyncpg.config import AsyncpgConfig
 
 
 class SlotsBase:
