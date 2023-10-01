@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: INP001
 
 from typing import TYPE_CHECKING, Any
 
