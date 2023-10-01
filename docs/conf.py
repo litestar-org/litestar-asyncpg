@@ -10,11 +10,11 @@ from litestar_asyncpg.__metadata__ import __version__ as version
 
 
 # -- Project information -----------------------------------------------------
-project = project
+project = project  # noqa: PLW0127
 author = "Cody Fincher"
 release = version
 release = os.getenv("_LITESTAR-ASYNCPG_DOCS_BUILD_VERSION", version.rsplit(".")[0])
-copyright = "2023, Cody Fincher"
+copyright = "2023, Cody Fincher"  # noqa: A001
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -111,8 +111,8 @@ html_theme_options = {
     "announcement": "This documentation is currently under development.",
     "github_url": "https://github.com/cofin/litestar-asyncpg",
     "nav_links": [
-        {"title": "Home", "url": "https://advanced-alchemy.jolt.rs"},
-        {"title": "Docs", "url": "https://docs.advanced-alchemy.jolt.rs"},
+        {"title": "Home", "url": "https://cofin.github.io/litesatr-asyncpg/"},
+        {"title": "Docs", "url": "https://cofin.github.io/litesatr-asyncpg/latest/"},
         {"title": "Code", "url": "https://github.com/cofin/litestar-asyncpg"},
     ],
     "light_css_variables": {
