@@ -30,10 +30,6 @@ SESSION_TERMINUS_ASGI_EVENTS = {HTTP_RESPONSE_START, HTTP_DISCONNECT, WEBSOCKET_
 T = TypeVar("T")
 
 
-class SlotsBase:
-    __slots__ = ("_config",)
-
-
 async def default_before_send_handler(message: Message, scope: Scope) -> None:  # noqa: ARG001
     """Handle closing and cleaning up sessions before sending.
 
