@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from asyncpg.pgproto import pgproto
 from litestar.di import Provide
 from litestar.plugins import InitPluginProtocol
 
@@ -50,6 +51,7 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
                 "db_connection": Provide(self._config.provide_connection),
             },
         )
+        app_config.type_encoders = {pgproto.UUID: str, **(app_config.type_encoders or {})}
         app_config.before_send.append(self._config.before_send_handler)
         app_config.lifespan.append(self._config.lifespan)
         app_config.signature_namespace.update(self._config.signature_namespace)
