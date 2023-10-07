@@ -92,7 +92,7 @@ html_favicon = "_static/logo.png"
 html_logo = "_static/logo.png"
 html_context = {
     "source_type": "github",
-    "source_user": "litestar-org",
+    "source_user": "cofin",
     "source_repo": project.replace("_", "-"),
 }
 
@@ -109,11 +109,11 @@ brand_colors = {
 html_theme_options = {
     "logo_target": "/",
     "announcement": "This documentation is currently under development.",
-    "github_url": "https://github.com/litestar-org/litestar-asyncpg",
+    "github_url": "https://github.com/cofin/litestar-asyncpg",
     "nav_links": [
-        {"title": "Home", "url": "https://litestar-org.github.io/litesatr-asyncpg/"},
-        {"title": "Docs", "url": "https://litestar-org.github.io/litesatr-asyncpg/latest/"},
-        {"title": "Code", "url": "https://github.com/litestar-org/litestar-asyncpg"},
+        {"title": "Home", "url": "https://cofin.github.io/litesatr-asyncpg/"},
+        {"title": "Docs", "url": "https://cofin.github.io/litesatr-asyncpg/latest/"},
+        {"title": "Code", "url": "https://github.com/cofin/litestar-asyncpg"},
     ],
     "light_css_variables": {
         # RGB
