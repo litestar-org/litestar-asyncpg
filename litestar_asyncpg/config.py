@@ -88,9 +88,9 @@ class PoolConfig:
     max_inactive_connection_lifetime: float | EmptyType = Empty
     """Number of seconds after which inactive connections in the pool will be closed. Pass 0 to disable this mechanism."""
 
-    setup: Coroutine[None, type[Connection], Any] | EmptyType = Empty
+    setup: Coroutine[None, None, Any | None] | EmptyType = Empty
     """A coroutine to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
-    init: Coroutine[None, type[Connection], Any] | EmptyType = Empty
+    init: Coroutine[None, None, Any | None] | EmptyType = Empty
     """A coroutine to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
 
     loop: AbstractEventLoop | EmptyType = Empty
