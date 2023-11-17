@@ -38,7 +38,8 @@ repos:
         exclude: "docs"
         additional_dependencies:
           [
-            aiosqlite,
+            asyncpg,
+            asyncpg_stubs,
             pytest,
             pytest-asyncio,
             pytest-lazy-fixture,
@@ -47,7 +48,6 @@ repos:
             pytest-mock,
             pytest-timeout,
             msgspec,
-            piccolo,
             "litestar[cli]",
           ]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
