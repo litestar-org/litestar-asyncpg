@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import os
 
-from litestar_asyncpg.__metadata__ import __project__ as project
-from litestar_asyncpg.__metadata__ import __version__ as version
+from litestar_piccolo.__metadata__ import __project__ as project
+from litestar_piccolo.__metadata__ import __version__ as version
 
 # -- Environmental Data ------------------------------------------------------
 
@@ -35,7 +35,7 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "asyncpg": ("https://magicstack.github.io/asyncpg/current/", None),
+    "piccolo": ("https://piccolo-orm.readthedocs.io/en/latest/", None),
     "litestar": ("https://docs.litestar.dev/latest/", None),
 }
 PY_CLASS = "py:class"
@@ -58,7 +58,7 @@ nitpick_ignore = [
     (PY_CLASS, "T"),
 ]
 nitpick_ignore_regex = [
-    (PY_RE, r"litestar_asyncpg.*\.T"),
+    (PY_RE, r"litestar_piccolo.*\.T"),
 ]
 
 napoleon_google_docstring = True
@@ -109,11 +109,11 @@ brand_colors = {
 html_theme_options = {
     "logo_target": "/",
     "announcement": "This documentation is currently under development.",
-    "github_url": "https://github.com/litestar-org/litestar-asyncpg",
+    "github_url": "https://github.com/litestar-org/litestar-piccolo",
     "nav_links": [
-        {"title": "Home", "url": "https://litestar-org.github.io/litesatr-asyncpg/"},
-        {"title": "Docs", "url": "https://litestar-org.github.io/litesatr-asyncpg/latest/"},
-        {"title": "Code", "url": "https://github.com/litestar-org/litestar-asyncpg"},
+        {"title": "Home", "url": "https://litestar-org.github.io/litesatr-piccolo/"},
+        {"title": "Docs", "url": "https://litestar-org.github.io/litesatr-piccolo/latest/"},
+        {"title": "Code", "url": "https://github.com/litestar-org/litestar-piccolo"},
     ],
     "light_css_variables": {
         # RGB

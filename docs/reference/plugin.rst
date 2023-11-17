@@ -2,5 +2,5 @@
 plugin
 ======
 
-.. automodule:: litestar_asyncpg.plugin
+.. automodule:: litestar_piccolo.plugin
     :members:

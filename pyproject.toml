@@ -23,33 +23,35 @@ classifiers = [
 ]
 dependencies = [
   "litestar[cli]>=2.0.1",
-  "asyncpg>=0.28.0",
+  "piccolo",
 ]
-description = "Asyncpg plugin for Litestar"
+description = "Piccolo ORM plugin for Litestar"
 keywords = [
   "litestar",
-  "asyncpg",
+  "piccolo",
 ]
 license = {text = "MIT"}
-name = "litestar-asyncpg"
+name = "litestar-piccolo"
 readme = "README.md"
 requires-python = ">=3.8"
-version = "0.1.3"
+version = "0.1.0"
 
 [project.urls]
-Changelog = "https://litestar-org.github.io/litesatr-asyncpg/latest/changelog"
+Changelog = "https://litestar-org.github.io/litesatr-piccolo/latest/changelog"
 Discord = "https://discord.gg/X3FJqy8d2j"
-Documentation = "https://litestar-org.github.io/litesatr-asyncpg/latest/"
-Homepage = "https://litestar-org.github.io/litesatr-asyncpg/latest/"
-Issue = "https://github.com/litestar-org/litestar-asyncpg/issues/"
-Source = "https://github.com/litestar-org/litestar-asyncpg"
+Documentation = "https://litestar-org.github.io/litesatr-piccolo/latest/"
+Homepage = "https://litestar-org.github.io/litesatr-piccolo/latest/"
+Issue = "https://github.com/litestar-org/litestar-piccolo/issues/"
+Source = "https://github.com/litestar-org/litestar-piccolo"
 
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [tool.pdm.dev-dependencies]
-dev = []
+dev = [
+  "aiosqlite>=0.19.0",
+]
 docs = [
   "sphinx>=7.1.2",
   "sphinx-autobuild>=2021.3.14",
@@ -62,7 +64,6 @@ docs = [
 ]
 linting = [
   "pre-commit>=3.4.0",
-  "asyncpg_stubs",
   "black>=23.7.0",
   "mypy>=1.5.1",
   "ruff>=0.0.287",
@@ -73,10 +74,7 @@ test = [
   "pytest-xdist>=3.3.1",
   "pytest-cov",
   "coverage",
-  "pytest-lazy-fixture>=0.6.3",
-  "pytest-asyncio>=0.21.1",
   "pytest-mock>=3.11.1",
-  "time-machine>=2.12.0",
   "httpx>=0.24.1",
 ]
 
@@ -156,7 +154,7 @@ ignore = [
 ]
 line-length = 120
 select = ["ALL"]
-src = ["litestar_asyncpg", "tests"]
+src = ["litestar_piccolo", "tests"]
 target-version = "py38"
 
 [tool.ruff.pydocstyle]
@@ -197,7 +195,7 @@ max-complexity = 12
 strict-imports = false
 
 [tool.ruff.isort]
-known-first-party = ["litestar_asyncpg", "tests"]
+known-first-party = ["litestar_piccolo", "tests"]
 
 [tool.mypy]
 disallow_any_generics = false
@@ -223,25 +221,25 @@ skip = 'pdm.lock'
 [tool.git-cliff.changelog]
 body = """
 {% if version %}\
-    `Release [v{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }} <https://github.com/litestar-org/litestar-asyncpg/releases/tag/v{{ version | trim_start_matches(pat="v") }}>`_
+    `Release [v{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }} <https://github.com/litestar-org/litestar-piccolo/releases/tag/v{{ version | trim_start_matches(pat="v") }}>`_
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    * `See All commits in v{{ version | trim_start_matches(pat="v") }} <https://github.com/litestar-org/litestar-asyncpg/commits/v{{ version | trim_start_matches(pat="v") }}>`_
+    * `See All commits in v{{ version | trim_start_matches(pat="v") }} <https://github.com/litestar-org/litestar-piccolo/commits/v{{ version | trim_start_matches(pat="v") }}>`_
 {% else %}\
     [unreleased]
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 {% endif %}\
 {% if previous %}\
     {% if previous.commit_id %}
-        `{{ previous.commit_id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-asyncpg/commit/{{ previous.commit_id }}>`_ ... \
-            `{{ commit_id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-asyncpg/commit/{{ commit_id }}>`_ \
-            | `See diff for {{ version | trim_start_matches(pat="v") }} <https://github.com/litestar-org/litestar-asyncpg/compare/{{ previous.commit_id }}...{{ commit_id }}>`_
+        `{{ previous.commit_id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-piccolo/commit/{{ previous.commit_id }}>`_ ... \
+            `{{ commit_id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-piccolo/commit/{{ commit_id }}>`_ \
+            | `See diff for {{ version | trim_start_matches(pat="v") }} <https://github.com/litestar-org/litestar-piccolo/compare/{{ previous.commit_id }}...{{ commit_id }}>`_
     {% endif %}\
 {% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
     {{ group | upper_first }}
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     {% for commit in commits %}
-        * (`{{ commit.id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-asyncpg/commit/{{ commit.id }}>`_) {% if commit.breaking %}[**breaking**] {% endif %} - {{ commit.message | upper_first }} ({{ commit.author.name  }})\
+        * (`{{ commit.id | truncate(length=7, end="") }} <https://github.com/litestar-org/litestar-piccolo/commit/{{ commit.id }}>`_) {% if commit.breaking %}[**breaking**] {% endif %} - {{ commit.message | upper_first }} ({{ commit.author.name  }})\
           {% for footer in commit.footers -%}
             , {{ footer.token }}{{ footer.separator }}{{ footer.value }}\
           {% endfor %}\
@@ -249,7 +247,7 @@ body = """
 {% endfor %}\n
 """
 footer = """
-Litestar Asyncpg Changelog
+Litestar Piccolo Changelog
 """
 header = """
 =========

@@ -2,5 +2,5 @@
 config
 ======
 
-.. automodule:: litestar_asyncpg.config
+.. automodule:: litestar_piccolo.config
     :members:
