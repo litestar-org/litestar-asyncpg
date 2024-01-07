@@ -47,8 +47,8 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
 
         app_config.dependencies.update(
             {
-                "db_pool": Provide(self._config.provide_pool, sync_to_thread=False),
-                "db_connection": Provide(self._config.provide_connection),
+                self._config.pool_dependency_key: Provide(self._config.provide_pool, sync_to_thread=False),
+                self._config.connection_dependency_key: Provide(self._config.provide_connection),
             },
         )
         app_config.type_encoders = {pgproto.UUID: str, **(app_config.type_encoders or {})}
