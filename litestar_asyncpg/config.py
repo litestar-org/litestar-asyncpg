@@ -107,6 +107,10 @@ class AsyncpgConfig:
     """Key under which to store the asyncpg pool in the application :class:`State <.datastructures.State>`
     instance.
     """
+    pool_dependency_key: str = "db_pool"
+    """Key under which to store the asyncpg Pool in the application dependency injection map.    """
+    connection_dependency_key: str = "db_connection"
+    """Key under which to store the asyncpg Pool in the application dependency injection map.    """
     before_send_handler: BeforeMessageSendHookHandler = default_before_send_handler
     """Handler to call before the ASGI message is sent.
 
