@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import timeit
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generator
 
 import asyncpg
@@ -54,7 +55,7 @@ class DockerServiceRegistry:
         self._base_command = ["docker-compose"] if self._use_legacy_compose else ["docker", "compose"]
         self._base_command.extend(
             [
-                "--file=tests/docker-compose.yml",
+                f"--file={Path(__file__).parent}/docker-compose.yml",
                 "--project-name=app_pytest",
             ],
         )
@@ -72,7 +73,8 @@ class DockerServiceRegistry:
 
     def run_command(self, *args: str) -> None:
         command = [*self._base_command, *args]
-        subprocess.run(command, check=True, capture_output=True)
+        r = subprocess.run(command, check=True, capture_output=True)
+        pass
 
     async def start(
         self,
