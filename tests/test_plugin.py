@@ -14,9 +14,9 @@ pytestmark = pytest.mark.anyio
 
 async def test_lifespan(postgres_service: None, docker_ip: str) -> None:
     @get("/")
-    async def health_check(provide_connection: Connection) -> float:
+    async def health_check(db_connection: Connection) -> float:
         """Check database available and returns random number."""
-        r = await provide_connection.fetch("select random()")
+        r = await db_connection.fetch("select random()")
         return r[0]["random"]  # type: ignore
 
     @asynccontextmanager
