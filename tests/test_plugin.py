@@ -25,7 +25,7 @@ async def test_lifespan(postgres_service: None, docker_ip: str) -> None:
         yield
         print(2)  # noqa: T201
 
-    asyncpg_config = AsyncpgConfig(pool_config=PoolConfig(dsn=f"postgresql://app:app@{docker_ip}:5432/app"))
+    asyncpg_config = AsyncpgConfig(pool_config=PoolConfig(dsn=f"postgresql://app:app@{docker_ip}:5423/app"))
     asyncpg = AsyncpgPlugin(config=asyncpg_config)
     with create_test_client(route_handlers=[health_check], plugins=[asyncpg], lifespan=[partial(lifespan)]) as client:
         response = client.get("/")
