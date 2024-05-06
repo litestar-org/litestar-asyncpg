@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import asyncio
+from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -15,41 +15,29 @@ from litestar_asyncpg.plugin import AsyncpgPlugin
 
 here = Path(__file__).parent
 if TYPE_CHECKING:
-    from collections import abc
+    pass
 
 pytestmark = pytest.mark.anyio
+pytest_plugins = [
+    "pytest_databases.docker",
+    "pytest_databases.docker.postgres",
+]
 
-pytest_plugins = ["tests.docker_service_fixtures"]
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> abc.Iterator[asyncio.AbstractEventLoop]:
-    """Scoped Event loop.
 
-    Need the event loop scoped to the session so that we can use it to check
-    containers are ready in session scoped containers fixture.
-    """
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    try:
-        yield loop
-    finally:
-        loop.close()
-
-
-@pytest.fixture(name="connection_pool")
-async def connection_pool(docker_ip: str, postgres_service: None) -> Pool:
+@pytest.fixture(name="connection_pool", scope="session")
+async def connection_pool(postgres_docker_ip: str, postgres_user: str, postgres_password: str, postgres_database: str, postgres_port:int, postgres_service: None) -> AsyncGenerator[Pool, None]:
     """App fixture.
 
     Returns:
         An application instance, configured via plugin.
     """
-    return asyncpg_create_pool(dsn=f"postgresql://app:app@{docker_ip}:5423/app", min_size=1, max_size=1)
+    yield asyncpg_create_pool(dsn=f"postgresql://{postgres_user}:{postgres_password}@{postgres_docker_ip}:{postgres_port}/{postgres_database}", min_size=1, max_size=1)
 
 
 @pytest.fixture(name="plugin")

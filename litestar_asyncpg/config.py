@@ -31,7 +31,7 @@ SESSION_TERMINUS_ASGI_EVENTS = {HTTP_RESPONSE_START, HTTP_DISCONNECT, WEBSOCKET_
 T = TypeVar("T")
 
 
-async def default_before_send_handler(message: Message, scope: Scope) -> None:  # noqa: ARG001
+async def default_before_send_handler(message: Message, scope: Scope) -> None:
     """Handle closing and cleaning up sessions before sending.
 
     Args:
@@ -41,10 +41,9 @@ async def default_before_send_handler(message: Message, scope: Scope) -> None:  
     Returns:
         None
     """
-    session = get_scope_state(scope, CONNECTION_SCOPE_KEY)
-    if session is not None:
+    session = cast("PoolConnectionProxy | Connection | None", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+    if session  is not None and message["type"] in SESSION_TERMINUS_ASGI_EVENTS:
         delete_scope_state(scope, CONNECTION_SCOPE_KEY)
-
 
 def serializer(value: Any) -> str:
     """Serialize JSON field values.
