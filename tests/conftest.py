@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 from asyncpg import create_pool as asyncpg_create_pool
@@ -14,8 +13,7 @@ from litestar_asyncpg.config import AsyncpgConfig
 from litestar_asyncpg.plugin import AsyncpgPlugin
 
 here = Path(__file__).parent
-if TYPE_CHECKING:
-    pass
+
 
 pytestmark = pytest.mark.anyio
 pytest_plugins = [
