@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, Optional, TypeVar, Union, cast
 
 from asyncpg import Record
 from asyncpg import create_pool as asyncpg_create_pool
-from asyncpg.connection import Connection
-from asyncpg.pool import Pool, PoolConnectionProxy
+from asyncpg.connection import Connection, ConnectionMeta
+from asyncpg.pool import Pool, PoolConnectionProxy, PoolConnectionProxyMeta
 from litestar.constants import HTTP_DISCONNECT, HTTP_RESPONSE_START, WEBSOCKET_CLOSE, WEBSOCKET_DISCONNECT
 from litestar.exceptions import ImproperlyConfiguredException
 from litestar.serialization import decode_json, encode_json
 from litestar.types import Empty
-from litestar.utils import delete_litestar_scope_state, get_litestar_scope_state, set_litestar_scope_state
 from litestar.utils.dataclass import simple_asdict
+
+from litestar_asyncpg._utils import delete_scope_state, get_scope_state, set_scope_state
 
 if TYPE_CHECKING:
     from asyncio import AbstractEventLoop
@@ -25,12 +26,12 @@ if TYPE_CHECKING:
     from litestar.types import BeforeMessageSendHookHandler, EmptyType, Message, Scope
 
 
-SESSION_SCOPE_KEY = "_asyncpg_db_connection"
+CONNECTION_SCOPE_KEY = "_asyncpg_db_connection"
 SESSION_TERMINUS_ASGI_EVENTS = {HTTP_RESPONSE_START, HTTP_DISCONNECT, WEBSOCKET_DISCONNECT, WEBSOCKET_CLOSE}
 T = TypeVar("T")
 
 
-async def default_before_send_handler(message: Message, scope: Scope) -> None:  # noqa: ARG001
+async def default_before_send_handler(message: Message, scope: Scope) -> None:
     """Handle closing and cleaning up sessions before sending.
 
     Args:
@@ -40,10 +41,9 @@ async def default_before_send_handler(message: Message, scope: Scope) -> None:  
     Returns:
         None
     """
-    session = cast("Connection | PoolConnectionProxy | None", get_litestar_scope_state(scope, SESSION_SCOPE_KEY))
-    if session is not None:
-        delete_litestar_scope_state(scope, SESSION_SCOPE_KEY)
-
+    session = cast("Union[PoolConnectionProxy,Connection,None]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+    if session  is not None and message["type"] in SESSION_TERMINUS_ASGI_EVENTS:
+        delete_scope_state(scope, CONNECTION_SCOPE_KEY)
 
 def serializer(value: Any) -> str:
     """Serialize JSON field values.
@@ -107,6 +107,10 @@ class AsyncpgConfig:
     """Key under which to store the asyncpg pool in the application :class:`State <.datastructures.State>`
     instance.
     """
+    pool_dependency_key: str = "db_pool"
+    """Key under which to store the asyncpg Pool in the application dependency injection map.    """
+    connection_dependency_key: str = "db_connection"
+    """Key under which to store the asyncpg Pool in the application dependency injection map.    """
     before_send_handler: BeforeMessageSendHookHandler = default_before_send_handler
     """Handler to call before the ASGI message is sent.
 
@@ -146,7 +150,13 @@ class AsyncpgConfig:
         Returns:
             A string keyed dict of names to be added to the namespace for signature forward reference resolution.
         """
-        return {"Connection": Connection, "Pool": Pool, "PoolConnectionProxy": PoolConnectionProxy}
+        return {
+            "Connection": Connection,
+            "Pool": Pool,
+            "PoolConnectionProxy": PoolConnectionProxy,
+            "PoolConnectionProxyMeta": PoolConnectionProxyMeta,
+            "ConnectionMeta": ConnectionMeta,
+        }
 
     async def create_pool(self) -> Pool:
         """Return a pool. If none exists yet, create one.
@@ -165,9 +175,7 @@ class AsyncpgConfig:
         self.pool_instance = await asyncpg_create_pool(**pool_config)
         if self.pool_instance is None:
             msg = "Could not configure the 'pool_instance'. Please check your configuration."
-            raise ImproperlyConfiguredException(
-                msg,
-            )
+            raise ImproperlyConfiguredException(    msg        )
         return self.pool_instance
 
     @asynccontextmanager
@@ -198,7 +206,7 @@ class AsyncpgConfig:
         self,
         state: State,
         scope: Scope,
-    ) -> AsyncGenerator[Connection | PoolConnectionProxy, None]:
+    ) -> AsyncGenerator[Union[PoolConnectionProxy,Connection], None]:  # noqa: UP007
         """Create a connection instance.
 
         Args:
@@ -208,10 +216,10 @@ class AsyncpgConfig:
         Returns:
             A connection instance.
         """
-        connection = cast("Connection | PoolConnectionProxy | None", get_litestar_scope_state(scope, SESSION_SCOPE_KEY))
+        connection = cast("Optional[Union[PoolConnectionProxy,Connection]]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
         if connection is None:
             pool = cast("Pool", state.get(self.pool_app_state_key))
 
             async with pool.acquire() as connection:
-                set_litestar_scope_state(scope, SESSION_SCOPE_KEY, connection)
+                set_scope_state(scope, CONNECTION_SCOPE_KEY, connection)
                 yield connection
