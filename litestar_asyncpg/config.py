@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, Optional, TypeVar, Union, cast
 
 from asyncpg import Record
 from asyncpg import create_pool as asyncpg_create_pool
@@ -41,7 +41,7 @@ async def default_before_send_handler(message: Message, scope: Scope) -> None:
     Returns:
         None
     """
-    session = cast("PoolConnectionProxy | Connection | None", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+    session = cast("Union[PoolConnectionProxy,Connection,None]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
     if session  is not None and message["type"] in SESSION_TERMINUS_ASGI_EVENTS:
         delete_scope_state(scope, CONNECTION_SCOPE_KEY)
 
@@ -175,9 +175,7 @@ class AsyncpgConfig:
         self.pool_instance = await asyncpg_create_pool(**pool_config)
         if self.pool_instance is None:
             msg = "Could not configure the 'pool_instance'. Please check your configuration."
-            raise ImproperlyConfiguredException(
-                msg,
-            )
+            raise ImproperlyConfiguredException(    msg        )
         return self.pool_instance
 
     @asynccontextmanager
@@ -208,7 +206,7 @@ class AsyncpgConfig:
         self,
         state: State,
         scope: Scope,
-    ) -> AsyncGenerator[Connection | PoolConnectionProxy, None]:
+    ) -> AsyncGenerator[Union[PoolConnectionProxy,Connection], None]:  # noqa: UP007
         """Create a connection instance.
 
         Args:
@@ -218,7 +216,7 @@ class AsyncpgConfig:
         Returns:
             A connection instance.
         """
-        connection = cast("Connection | PoolConnectionProxy | None", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+        connection = cast("Optional[Union[PoolConnectionProxy,Connection]]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
         if connection is None:
             pool = cast("Pool", state.get(self.pool_app_state_key))
 
