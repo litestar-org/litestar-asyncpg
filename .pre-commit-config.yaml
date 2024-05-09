@@ -1,5 +1,5 @@
 default_language_version:
-  python: "3.11"
+  python: python3
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.2.0
@@ -26,11 +26,9 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        args: [--config=./pyproject.toml]
+        exclude: "pdm.lock|examples/us_state_lookup.json"
+        additional_dependencies:
+          - tomli
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: "v1.10.0"
     hooks:
@@ -39,16 +37,14 @@ repos:
         additional_dependencies:
           [
             asyncpg,
+            "anyio",
             asyncpg_stubs,
             pytest,
-            pytest-asyncio,
-            pytest-lazy-fixture,
             time-machine,
-            httpx,
             pytest-mock,
             pytest-timeout,
-            msgspec,
-            "litestar[cli]",
+            "litestar",
+            "types-click",
           ]
   - repo: https://github.com/sphinx-contrib/sphinx-lint
     rev: "v0.9.1"
