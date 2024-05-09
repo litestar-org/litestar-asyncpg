@@ -88,10 +88,10 @@ class PoolConfig:
     max_inactive_connection_lifetime: float | EmptyType = Empty
     """Number of seconds after which inactive connections in the pool will be closed. Pass 0 to disable this mechanism."""
 
-    setup: Coroutine[None, None, Any | None] | EmptyType = Empty
-    """A coroutine to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
-    init: Coroutine[None, None, Any | None] | EmptyType = Empty
-    """A coroutine to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
+    setup: Callable[[Connection | PoolConnectionProxy], Coroutine[Any, Any, None]] | EmptyType = Empty
+    """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
+    init: Callable[[Connection | PoolConnectionProxy], Coroutine[Any, Any, None]] | EmptyType = Empty
+    """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
 
     loop: AbstractEventLoop | EmptyType = Empty
     """An asyncio event loop instance. If None, the default event loop will be used."""
