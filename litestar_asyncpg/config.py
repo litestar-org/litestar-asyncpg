@@ -90,7 +90,7 @@ class PoolConfig:
 
     setup: Callable[[Connection | PoolConnectionProxy], Coroutine[Any, Any, None]] | EmptyType = Empty
     """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
-    init: Callable[[Connection | PoolConnectionProxy], Coroutine[Any, Any, None]] | EmptyType = Empty
+    init: Callable[[Connection], Coroutine[Any, Any, None]] | EmptyType = Empty
     """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
 
     loop: AbstractEventLoop | EmptyType = Empty
