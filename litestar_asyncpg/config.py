@@ -202,7 +202,6 @@ class AsyncpgConfig:
         """
         return cast("Pool", state.get(self.pool_app_state_key))
 
-    @asynccontextmanager
     async def provide_connection(
         self,
         state: State,
