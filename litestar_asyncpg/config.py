@@ -202,6 +202,7 @@ class AsyncpgConfig:
         """
         return cast("Pool", state.get(self.pool_app_state_key))
 
+    @asynccontextmanager
     async def provide_connection(
         self,
         state: State,
@@ -223,3 +224,18 @@ class AsyncpgConfig:
             async with pool.acquire() as connection:
                 set_scope_state(scope, CONNECTION_SCOPE_KEY, connection)
                 yield connection
+
+    @asynccontextmanager
+    async def get_connection(
+        self,
+    ) -> AsyncGenerator[Union[PoolConnectionProxy,Connection], None]:  # noqa: UP007
+        """Create a connection instance.
+
+        Args:
+            pool: The pool to grab a connection from
+
+        Returns:
+            A connection instance.
+        """
+        async with (await self.create_pool()).acquire() as connection:
+            yield connection
