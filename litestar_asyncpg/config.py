@@ -139,7 +139,12 @@ class AsyncpgConfig:
             function.
         """
         if self.pool_config:
-            return simple_asdict(self.pool_config, exclude_empty=True, convert_nested=False)
+            ret = simple_asdict(self.pool_config, exclude_empty=True, convert_nested=False)
+            connect_kwargs = ret.pop("connect_kwargs", None)
+            if connect_kwargs is not None:
+                ret.update(connect_kwargs)
+            return ret
+
         msg = "'pool_config' methods can not be used when a 'pool_instance' is provided."
         raise ImproperlyConfiguredException(msg)
 
