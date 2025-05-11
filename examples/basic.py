@@ -2,8 +2,6 @@
 
 
 import msgspec
-from asyncpg import Connection
-from asyncpg.connection import ConnectionMeta
 from litestar import Controller, Litestar, get
 from litestar.exceptions import InternalServerException
 
