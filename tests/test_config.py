@@ -1,14 +1,15 @@
 
 
 import pytest
+from pytest_databases.docker.postgres import PostgresService
 
 from litestar_asyncpg import AsyncpgConfig, PoolConfig
 
 pytestmark = pytest.mark.anyio
 
 
-async def test_get_connection(postgres_service: None, postgres_docker_ip: str,  postgres_user: str, postgres_password: str, postgres_database: str, postgres_port:int) -> None:
-    asyncpg_config = AsyncpgConfig(pool_config=PoolConfig(dsn=f"postgresql://{postgres_user}:{postgres_password}@{postgres_docker_ip}:{postgres_port}/{postgres_database}"))
+async def test_get_connection(postgres_service: PostgresService) -> None:
+    asyncpg_config = AsyncpgConfig(pool_config=PoolConfig(dsn=f"postgresql://{postgres_service.user}:{postgres_service.password}@{postgres_service.host}:{postgres_service.port}/{postgres_service.database}"))
 
 
     async with asyncpg_config.get_connection() as db_connection:

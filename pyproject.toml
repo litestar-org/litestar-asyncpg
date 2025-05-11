@@ -32,7 +32,7 @@ license = { text = "MIT" }
 name = "litestar-asyncpg"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "0.3.0"
+version = "0.4.0"
 
 [project.urls]
 Changelog = "https://litestar-org.github.io/litesatr-asyncpg/latest/changelog"
@@ -61,7 +61,9 @@ lint = [
   "asyncpg_stubs",
   "mypy",
   "ruff",
-  "types-click"
+  "types-click",
+  "pyright",
+  "slotscheck"
 ]
 test = [
   "pytest",
@@ -70,7 +72,8 @@ test = [
   "coverage",
   "pytest-mock",
   "pytest-sugar",
-  "pytest-databases"
+  "pytest-databases[postgres]",
+  "pytest-xdist"
 ]
 dev = [
   { include-group = "lint" },

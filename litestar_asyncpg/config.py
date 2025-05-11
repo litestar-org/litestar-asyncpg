@@ -1,3 +1,4 @@
+
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, TypeVar, Union, cast
@@ -29,6 +30,11 @@ CONNECTION_SCOPE_KEY = "_asyncpg_db_connection"
 SESSION_TERMINUS_ASGI_EVENTS = {HTTP_RESPONSE_START, HTTP_DISCONNECT, WEBSOCKET_DISCONNECT, WEBSOCKET_CLOSE}
 T = TypeVar("T")
 
+if TYPE_CHECKING:
+    AsyncpgConnection: TypeAlias = "Union[Connection[Record], PoolConnectionProxy[Record]]"
+else:
+    AsyncpgConnection: TypeAlias = "Union[Connection, PoolConnectionProxy]"
+
 
 async def default_before_send_handler(message: "Message", scope: "Scope") -> None:
     """Handle closing and cleaning up sessions before sending.
@@ -55,7 +61,6 @@ def serializer(value: "Any") -> str:
     """
     return encode_json(value).decode("utf-8")
 
-AsyncpgConnection: TypeAlias = "Union[Connection[Any], PoolConnectionProxy[Any]]"
 
 @dataclass
 class PoolConfig:
@@ -79,7 +84,7 @@ class PoolConfig:
     min_size: "Union[int,EmptyType]" = Empty
     """The number of connections to keep open inside the connection pool."""
     max_size: "Union[int , EmptyType]" = Empty
-    """The number of connections to allow in connection pool “overflow”, that is connections that can be opened above
+    """The number of connections to allow in connection pool "overflow", that is connections that can be opened above
     and beyond the pool_size setting, which defaults to 10."""
 
     max_queries: "Union[int, EmptyType]" = Empty
@@ -117,13 +122,13 @@ class AsyncpgConfig:
     The handler should handle closing the session stored in the ASGI scope, if it's still open, and committing and
     uncommitted data.
     """
-    json_deserializer: "Callable[[str], Any]" = decode_json
+    json_deserializer: "Optional[Callable[[str], Any]]" = decode_json
     """For dialects that support the :class:`JSON <sqlalchemy.types.JSON>` datatype, this is a Python callable that will
     convert a JSON string to a Python object. By default, this is set to Litestar's
-    :attr:`decode_json() <.serialization.decode_json>` function."""
-    json_serializer: "Callable[[Any], str]" = serializer
+    :attr:`decode_json() <.serialization.decode_json>` function. If set to None, no deserializer will be set on the connection."""
+    json_serializer: "Optional[Callable[[Any], str]]" = serializer
     """For dialects that support the JSON datatype, this is a Python callable that will render a given object as JSON.
-    By default, Litestar's :attr:`encode_json() <.serialization.encode_json>` is used."""
+    By default, Litestar's :attr:`encode_json() <.serialization.encode_json>` is used. If set to None, no serializer will be set on the connection."""
     pool_instance: "Optional[Pool]" = None
     """Optional pool to use.
 
@@ -161,6 +166,7 @@ class AsyncpgConfig:
             "PoolConnectionProxy": PoolConnectionProxy,
             "PoolConnectionProxyMeta": PoolConnectionProxyMeta,
             "ConnectionMeta": ConnectionMeta,
+            "AsyncpgConnection": AsyncpgConnection,
         }
 
     async def create_pool(self) -> Pool:
@@ -177,6 +183,33 @@ class AsyncpgConfig:
             raise ImproperlyConfiguredException(msg)
 
         pool_config = self.pool_config_dict
+        user_init = pool_config.get("init", None)
+
+        async def set_json_handlers(conn: "AsyncpgConnection") -> None:
+            for pg_type in ("json", "jsonb"):
+                if self.json_serializer is not None:
+                    await conn.set_type_codec(
+                        pg_type,
+                        encoder=self.json_serializer,
+                        decoder=self.json_deserializer if self.json_deserializer is not None else lambda x: x,
+                        schema="pg_catalog",
+                        format="text",
+                    )
+                elif self.json_deserializer is not None:
+                    await conn.set_type_codec(
+                        pg_type,
+                        encoder=lambda x: x,
+                        decoder=self.json_deserializer,
+                        schema="pg_catalog",
+                        format="text",
+                    )
+            if user_init not in (None, Empty):
+                await user_init(conn)
+
+        # Only inject if at least one is not None
+        if self.json_serializer is not None or self.json_deserializer is not None:
+            pool_config["init"] = set_json_handlers
+
         self.pool_instance = await asyncpg_create_pool(**pool_config)
         if self.pool_instance is None:
             msg = "Could not configure the 'pool_instance'. Please check your configuration." # type: ignore[unreachable]
@@ -221,7 +254,7 @@ class AsyncpgConfig:
         Returns:
             A connection instance.
         """
-        connection = cast("Optional[AsyncpgConnection]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+        connection = cast("Optional[Union[Connection, PoolConnectionProxy]]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
         if connection is None:
             pool = cast("Pool", state.get(self.pool_app_state_key))
 
