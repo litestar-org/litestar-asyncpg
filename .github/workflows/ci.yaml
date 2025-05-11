@@ -98,28 +98,6 @@ jobs:
     with:
       coverage: ${{ matrix.python-version == '3.13' }}
       python-version: ${{ matrix.python-version }}
-  sonar:
-    needs:
-      - test
-      - validate
-    if: github.event.pull_request.head.repo.fork == false && github.repository_owner == 'litestar-org'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-xml
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   codecov:
     needs:
       - test
