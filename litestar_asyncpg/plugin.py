@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from asyncpg.pgproto import pgproto
@@ -21,7 +19,7 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
 
     __slots__ = ()
 
-    def __init__(self, config: AsyncpgConfig) -> None:
+    def __init__(self, config: "AsyncpgConfig") -> None:
         """Initialize ``AsyncpgPlugin``.
 
         Args:
@@ -30,7 +28,7 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
         self._config = config
 
     @property
-    def config(self) -> AsyncpgConfig:
+    def config(self) -> "AsyncpgConfig":
         """Return the plugin config.
 
         Returns:
@@ -38,7 +36,7 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
         """
         return self._config
 
-    def on_app_init(self, app_config: AppConfig) -> AppConfig:
+    def on_app_init(self, app_config: "AppConfig") -> "AppConfig":
         """Configure application for use with Asyncpg.
 
         Args:

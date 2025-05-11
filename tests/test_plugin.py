@@ -1,6 +1,7 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from functools import partial
-from typing import Any, AsyncGenerator
+from typing import Any
 
 import pytest
 from asyncpg import Connection
@@ -17,7 +18,7 @@ async def test_lifespan(postgres_service: None, postgres_docker_ip: str,  postgr
     async def health_check(db_connection: Connection) -> float:
         """Check database available and returns random number."""
         r = await db_connection.fetch("select random()")
-        return r[0]["random"]  # type: ignore
+        return r[0]["random"]  # type: ignore[no-any-return]
 
     @asynccontextmanager
     async def lifespan(_app: Litestar) -> AsyncGenerator[None, Any]:

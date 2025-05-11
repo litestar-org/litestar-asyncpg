@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, TypeVar, Union, cast
@@ -13,6 +11,7 @@ from litestar.exceptions import ImproperlyConfiguredException
 from litestar.serialization import decode_json, encode_json
 from litestar.types import Empty
 from litestar.utils.dataclass import simple_asdict
+from typing_extensions import TypeAlias
 
 from litestar_asyncpg._utils import delete_scope_state, get_scope_state, set_scope_state
 
@@ -31,7 +30,7 @@ SESSION_TERMINUS_ASGI_EVENTS = {HTTP_RESPONSE_START, HTTP_DISCONNECT, WEBSOCKET_
 T = TypeVar("T")
 
 
-async def default_before_send_handler(message: Message, scope: Scope) -> None:
+async def default_before_send_handler(message: "Message", scope: "Scope") -> None:
     """Handle closing and cleaning up sessions before sending.
 
     Args:
@@ -45,7 +44,7 @@ async def default_before_send_handler(message: Message, scope: Scope) -> None:
     if session  is not None and message["type"] in SESSION_TERMINUS_ASGI_EVENTS:
         delete_scope_state(scope, CONNECTION_SCOPE_KEY)
 
-def serializer(value: Any) -> str:
+def serializer(value: "Any") -> str:
     """Serialize JSON field values.
 
     Args:
@@ -56,6 +55,7 @@ def serializer(value: Any) -> str:
     """
     return encode_json(value).decode("utf-8")
 
+AsyncpgConnection: TypeAlias = "Union[Connection[Any], PoolConnectionProxy[Any]]"
 
 @dataclass
 class PoolConfig:
@@ -67,33 +67,33 @@ class PoolConfig:
     dsn: str
     """Connection arguments specified using as a single string in the following format: ``postgres://user:pass@host:port/database?option=value``
     """
-    connect_kwargs: dict[Any, Any] | None | EmptyType = Empty
+    connect_kwargs: "Optional[Union[dict[str, Any], EmptyType]]" = Empty
     """A dictionary of arguments which will be passed directly to the ``connect()`` method as keyword arguments.
     """
-    connection_class: type[Connection] | None | EmptyType = Empty
+    connection_class: "Optional[Union[type[Connection], EmptyType]]" = Empty
     """The class to use for connections. Must be a subclass of Connection
     """
-    record_class: type[Record] | EmptyType = Empty
+    record_class: "Union[type[Record] , EmptyType]" = Empty
     """If specified, the class to use for records returned by queries on the connections in this pool. Must be a subclass of Record."""
 
-    min_size: int | EmptyType = Empty
+    min_size: "Union[int,EmptyType]" = Empty
     """The number of connections to keep open inside the connection pool."""
-    max_size: int | EmptyType = Empty
+    max_size: "Union[int , EmptyType]" = Empty
     """The number of connections to allow in connection pool “overflow”, that is connections that can be opened above
     and beyond the pool_size setting, which defaults to 10."""
 
-    max_queries: int | EmptyType = Empty
+    max_queries: "Union[int, EmptyType]" = Empty
     """Number of queries after a connection is closed and replaced with a new connection.
     """
-    max_inactive_connection_lifetime: float | EmptyType = Empty
+    max_inactive_connection_lifetime: "Union[float, EmptyType]" = Empty
     """Number of seconds after which inactive connections in the pool will be closed. Pass 0 to disable this mechanism."""
 
-    setup: Callable[[Connection | PoolConnectionProxy], Coroutine[Any, Any, None]] | EmptyType = Empty
+    setup: "Union[Callable[[AsyncpgConnection], Coroutine[Any, Any, None]], EmptyType]" = Empty
     """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
-    init: Callable[[Connection], Coroutine[Any, Any, None]] | EmptyType = Empty
+    init: "Union[Callable[[AsyncpgConnection], Coroutine[Any, Any, None]], EmptyType]" = Empty
     """A callable to prepare a connection right before it is returned from Pool.acquire(). An example use case would be to automatically set up notifications listeners for all connections of a pool."""
 
-    loop: AbstractEventLoop | EmptyType = Empty
+    loop: "Union[AbstractEventLoop, EmptyType]" = Empty
     """An asyncio event loop instance. If None, the default event loop will be used."""
 
 
@@ -101,7 +101,7 @@ class PoolConfig:
 class AsyncpgConfig:
     """Asyncpg Configuration."""
 
-    pool_config: PoolConfig | None = None
+    pool_config: "Optional[PoolConfig]" = None
     """Asyncpg Pool configuration"""
     pool_app_state_key: str = "db_pool"
     """Key under which to store the asyncpg pool in the application :class:`State <.datastructures.State>`
@@ -111,27 +111,27 @@ class AsyncpgConfig:
     """Key under which to store the asyncpg Pool in the application dependency injection map.    """
     connection_dependency_key: str = "db_connection"
     """Key under which to store the asyncpg Pool in the application dependency injection map.    """
-    before_send_handler: BeforeMessageSendHookHandler = default_before_send_handler
+    before_send_handler: "BeforeMessageSendHookHandler" = default_before_send_handler
     """Handler to call before the ASGI message is sent.
 
     The handler should handle closing the session stored in the ASGI scope, if it's still open, and committing and
     uncommitted data.
     """
-    json_deserializer: Callable[[str], Any] = decode_json
+    json_deserializer: "Callable[[str], Any]" = decode_json
     """For dialects that support the :class:`JSON <sqlalchemy.types.JSON>` datatype, this is a Python callable that will
     convert a JSON string to a Python object. By default, this is set to Litestar's
     :attr:`decode_json() <.serialization.decode_json>` function."""
-    json_serializer: Callable[[Any], str] = serializer
+    json_serializer: "Callable[[Any], str]" = serializer
     """For dialects that support the JSON datatype, this is a Python callable that will render a given object as JSON.
     By default, Litestar's :attr:`encode_json() <.serialization.encode_json>` is used."""
-    pool_instance: Pool | None = None
+    pool_instance: "Optional[Pool]" = None
     """Optional pool to use.
 
     If set, the plugin will use the provided pool rather than instantiate one.
     """
 
     @property
-    def pool_config_dict(self) -> dict[str, Any]:
+    def pool_config_dict(self) -> "dict[str, Any]":
         """Return the pool configuration as a dict.
 
         Returns:
@@ -149,7 +149,7 @@ class AsyncpgConfig:
         raise ImproperlyConfiguredException(msg)
 
     @property
-    def signature_namespace(self) -> dict[str, Any]:
+    def signature_namespace(self) -> "dict[str, Any]":
         """Return the plugin's signature namespace.
 
         Returns:
@@ -179,15 +179,15 @@ class AsyncpgConfig:
         pool_config = self.pool_config_dict
         self.pool_instance = await asyncpg_create_pool(**pool_config)
         if self.pool_instance is None:
-            msg = "Could not configure the 'pool_instance'. Please check your configuration."
-            raise ImproperlyConfiguredException(    msg        )
+            msg = "Could not configure the 'pool_instance'. Please check your configuration." # type: ignore[unreachable]
+            raise ImproperlyConfiguredException(msg)
         return self.pool_instance
 
     @asynccontextmanager
     async def lifespan(
         self,
-        app: Litestar,
-    ) -> AsyncGenerator[None, None]:
+        app: "Litestar"
+    ) -> "AsyncGenerator[None, None]":
         db_pool = await self.create_pool()
         app.state.update({self.pool_app_state_key: db_pool})
         try:
@@ -196,7 +196,7 @@ class AsyncpgConfig:
             db_pool.terminate()
             await db_pool.close()
 
-    def provide_pool(self, state: State) -> Pool:
+    def provide_pool(self, state: "State") -> "Pool":
         """Create a pool instance.
 
         Args:
@@ -209,9 +209,9 @@ class AsyncpgConfig:
 
     async def provide_connection(
         self,
-        state: State,
-        scope: Scope,
-    ) -> AsyncGenerator[Union[PoolConnectionProxy,Connection], None]:  # noqa: UP007
+        state: "State",
+        scope: "Scope"
+    ) -> "AsyncGenerator[AsyncpgConnection, None]":
         """Create a connection instance.
 
         Args:
@@ -221,7 +221,7 @@ class AsyncpgConfig:
         Returns:
             A connection instance.
         """
-        connection = cast("Optional[Union[PoolConnectionProxy,Connection]]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
+        connection = cast("Optional[AsyncpgConnection]", get_scope_state(scope, CONNECTION_SCOPE_KEY))
         if connection is None:
             pool = cast("Pool", state.get(self.pool_app_state_key))
 
@@ -231,8 +231,8 @@ class AsyncpgConfig:
 
     @asynccontextmanager
     async def get_connection(
-        self,
-    ) -> AsyncGenerator[Union[PoolConnectionProxy,Connection], None]:  # noqa: UP007
+        self
+    ) -> "AsyncGenerator[AsyncpgConnection, None]":
         """Create a connection instance.
 
         Args:

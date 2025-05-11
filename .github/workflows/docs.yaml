@@ -6,41 +6,44 @@ on:
   push:
     branches:
       - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  docs:
+  build_and_deploy:
     permissions:
       contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
-      - uses: pdm-project/setup-pdm@v4
-        name: Set up PDM
-        with:
-          python-version: "3.11"
-          allow-python-prereleases: true
-          cache: true
+      - name: Set up Python
+        run: uv python install 3.13
 
       - name: Install dependencies
-        run: pdm install -G:docs
+        run: uv sync --all-extras --dev
 
-      - name: Fetch gh pages
-        run: git fetch origin gh-pages --depth=1
-
-      - name: Build release docs
-        run: pdm run python tools/build_docs.py docs-build
+      - name: Build Release Documentation
+        run: uv run python tools/build_docs.py docs-build --version latest
         if: github.event_name == 'release'
 
-      - name: Build dev docs
-        run: pdm run python tools/build_docs.py docs-build
-        if: github.event_name == 'push'
+      - name: Build Documentation
+        run: uv run python tools/build_docs.py docs-build --version latest
+        if: github.event_name != 'release'
 
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: docs-build
+          path: docs-build/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
