@@ -106,17 +106,14 @@ parallel = true
 
 [tool.coverage.report]
 exclude_lines = [
-  'if TYPE_CHECKING:',
   'pragma: no cover',
-  "if __name__ == .__main__.:",
-  'def __repr__',
-  'if self\\.debug:',
-  'if settings\\.DEBUG',
-  'raise AssertionError',
+  'if TYPE_CHECKING:',
+  'except ImportError as e:',
+  'except ImportError:',
+  '\.\.\.',
   'raise NotImplementedError',
-  'if 0:',
-  'class .*\\bProtocol\\):',
-  '@(abc\\.)?abstractmethod',
+  'if VERSION.startswith("1"):',
+  'if pydantic.VERSION.startswith("1"):',
 ]
 omit = ["*/tests/*"]
 show_missing = true
