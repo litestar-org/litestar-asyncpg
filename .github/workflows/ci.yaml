@@ -6,18 +6,28 @@ on:
     branches:
       - main
 
+concurrency:
+  group: test-${{ github.head_ref }}
+  cancel-in-progress: true
+
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
-      - name: Install Pre-Commit
-        run: python -m pip install pre-commit && pre-commit install
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Create virtual environment
+        run: uv sync --all-extras --dev
+
+      - name: Install Pre-Commit hooks
+        run: uv run pre-commit install
 
       - name: Load cached Pre-Commit Dependencies
         id: cached-pre-commit-dependencies
@@ -27,32 +37,102 @@ jobs:
           key: pre-commit|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Execute Pre-Commit
-        run: pre-commit run --show-diff-on-failure --color=always --all-files
+        run: uv run pre-commit run --show-diff-on-failure --color=always --all-files
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run mypy
+        run: uv run mypy
+
+  pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run pyright
+        run: uv run pyright
+
+  # # TODO(cofin)
+  # # AttributeError: 'SuiteRequirements' object has no attribute 'computed_reflects_normally'
+  slotscheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
 
   test:
-    runs-on: ubuntu-latest
+    name: "test (${{ matrix.python-version }}"
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    uses: ./.github/workflows/test.yml
+    with:
+      coverage: ${{ matrix.python-version == '3.13' }}
+      python-version: ${{ matrix.python-version }}
+  codecov:
+    needs:
+      - test
+      - validate
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - uses: pdm-project/setup-pdm@v4
-        name: Set up PDM
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
 
-      - name: Install dependencies
-        run: pdm install
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          merge-multiple: true
 
-      - name: Test
-        run: pdm run pytest -m ""
+      # - name: Combine coverage files
+      #   run: |
+      #     python -Im pip install coverage covdefaults
+      #     python -Im coverage combine
+      #     python -Im coverage xml -i
+
+      # - name: Fix coverage file name
+      #   run: sed -i "s/home\/runner\/work\/advanced-alchemy\/advanced-alchemy/github\/workspace/g" coverage.xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: litestar-org/litestar-asyncpg
 
   build-docs:
     needs:
@@ -63,26 +143,26 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
-      - uses: pdm-project/setup-pdm@v4
-        name: Set up PDM
-        with:
-          python-version: "3.11"
+      - name: Set up Python
+        run: uv python install 3.13
 
       - name: Install dependencies
-        run: pdm install -G:all
+        run: uv sync --all-extras --dev
 
       - name: Build docs
-        run: pdm run make docs
+        run: uv run make docs
+
+      - name: Check docs links
+        env:
+          LITESTAR_DOCS_IGNORE_MISSING_EXAMPLE_OUTPUT: 1
+        run: uv run make docs-linkcheck
 
       - name: Save PR number
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: echo $PR_NUMBER > .pr_number
+        run: |
+          echo "${{ github.event.number }}" > .pr_number
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -91,3 +171,4 @@ jobs:
           path: |
             docs/_build/html
             .pr_number
+          include-hidden-files: true

@@ -1,15 +1,11 @@
-from __future__ import annotations
 
-from typing import TYPE_CHECKING
+
 
 import msgspec
 from litestar import Controller, Litestar, get
 from litestar.exceptions import InternalServerException
 
-from litestar_asyncpg import AsyncpgConfig, AsyncpgPlugin, PoolConfig
-
-if TYPE_CHECKING:
-    from asyncpg import Connection
+from litestar_asyncpg import AsyncpgConfig, AsyncpgConnection, AsyncpgPlugin, PoolConfig
 
 
 class PostgresHealthCheck(msgspec.Struct):
@@ -21,7 +17,7 @@ class PostgresHealthCheck(msgspec.Struct):
 
 class SampleController(Controller):
     @get(path="/sample")
-    async def sample_route(self, db_connection: Connection) -> PostgresHealthCheck:
+    async def sample_route(self, db_connection: AsyncpgConnection) -> PostgresHealthCheck:
         """Check database available and returns app config info."""
         result = await db_connection.fetchrow(
             "select version() as version, extract(epoch from current_timestamp - pg_postmaster_start_time()) as uptime",
@@ -31,5 +27,9 @@ class SampleController(Controller):
         raise InternalServerException
 
 
-asyncpg = AsyncpgPlugin(config=AsyncpgConfig(pool_config=PoolConfig(dsn="postgresql://app:app@localhost:5423/app")))
-app = Litestar(plugins=[asyncpg], route_handlers=[SampleController])
+app = Litestar(
+    plugins=[
+        AsyncpgPlugin(config=AsyncpgConfig(pool_config=PoolConfig(dsn="postgresql://app:app@localhost:5423/app")))
+    ],
+    route_handlers=[SampleController],
+)

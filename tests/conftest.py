@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from pathlib import Path
 
 import pytest
@@ -9,8 +8,7 @@ from asyncpg.pool import Pool
 from examples.basic import SampleController
 from litestar import Litestar
 
-from litestar_asyncpg.config import AsyncpgConfig
-from litestar_asyncpg.plugin import AsyncpgPlugin
+from litestar_asyncpg import AsyncpgConfig, AsyncpgPlugin
 
 here = Path(__file__).parent
 
@@ -29,13 +27,13 @@ def anyio_backend() -> str:
 
 
 @pytest.fixture(name="connection_pool", scope="session")
-async def connection_pool(postgres_docker_ip: str, postgres_user: str, postgres_password: str, postgres_database: str, postgres_port:int, postgres_service: None) -> AsyncGenerator[Pool, None]:
+async def connection_pool(postgres_docker_ip: str, postgres_user: str, postgres_password: str, postgres_database: str, postgres_port:int, postgres_service: None) -> Pool:
     """App fixture.
 
     Returns:
         An application instance, configured via plugin.
     """
-    yield asyncpg_create_pool(dsn=f"postgresql://{postgres_user}:{postgres_password}@{postgres_docker_ip}:{postgres_port}/{postgres_database}", min_size=1, max_size=1)
+    return asyncpg_create_pool(dsn=f"postgresql://{postgres_user}:{postgres_password}@{postgres_docker_ip}:{postgres_port}/{postgres_database}", min_size=1, max_size=1)
 
 
 @pytest.fixture(name="plugin")

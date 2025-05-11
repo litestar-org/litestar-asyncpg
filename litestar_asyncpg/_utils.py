@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
@@ -14,7 +13,7 @@ __all__ = (
 _SCOPE_NAMESPACE = "asyncpg_connection_state"
 
 
-def get_scope_state(scope: Scope, key: str, default: Any = None, pop: bool = False) -> Any:
+def get_scope_state(scope: "Scope", key: str, default: "Any" = None, pop: bool = False) -> "Any":
     """Get an internal value from connection scope state.
 
     Note:
@@ -37,7 +36,7 @@ def get_scope_state(scope: Scope, key: str, default: Any = None, pop: bool = Fal
     return namespace.pop(key, default) if pop else namespace.get(key, default)
 
 
-def set_scope_state(scope: Scope, key: str, value: Any) -> None:
+def set_scope_state(scope: "Scope", key: str, value: "Any") -> None:
     """Set an internal value in connection scope state.
 
     Args:
@@ -48,7 +47,7 @@ def set_scope_state(scope: Scope, key: str, value: Any) -> None:
     scope.setdefault(_SCOPE_NAMESPACE, {})[key] = value  # type: ignore[misc]
 
 
-def delete_scope_state(scope: Scope, key: str) -> None:
+def delete_scope_state(scope: "Scope", key: str) -> None:
     """Delete an internal value from connection scope state.
 
     Args:
