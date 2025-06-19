@@ -50,8 +50,9 @@ class AsyncpgPlugin(InitPluginProtocol, SlotsBase):
             },
         )
         app_config.type_encoders = {pgproto.UUID: str, **(app_config.type_encoders or {})}
-        app_config.before_send.append(self._config.before_send_handler)
         app_config.lifespan.append(self._config.lifespan)
         app_config.signature_namespace.update(self._config.signature_namespace)
+        if self._config.before_send_handler is not None:
+            app_config.before_send.append(self._config.before_send_handler)
 
         return app_config
