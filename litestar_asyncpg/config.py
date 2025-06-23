@@ -51,7 +51,7 @@ def default_before_send_handler(
         The handler callable
     """
 
-    async def before_send_handler(message: "Message", scope: "Scope") -> None:
+    def before_send_handler(message: "Message", scope: "Scope") -> None:
         """Handle closing and cleaning up sessions before sending.
 
         Args:
