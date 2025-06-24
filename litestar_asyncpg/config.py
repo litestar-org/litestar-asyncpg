@@ -230,7 +230,7 @@ class AsyncpgConfig:
                         format="text",
                     )
             if user_init not in (None, Empty):
-                await user_init(conn)
+                await user_init(conn) # type: ignore[misc,unused-ignore]
 
         # Only inject if at least one is not None
         if self.json_serializer is not None or self.json_deserializer is not None:
