@@ -288,9 +288,6 @@ class AsyncpgConfig:
     async def get_connection(self) -> "AsyncGenerator[AsyncpgConnection, None]":
         """Create a connection instance.
 
-        Args:
-            pool: The pool to grab a connection from
-
         Returns:
             A connection instance.
         """
