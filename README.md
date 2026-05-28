@@ -1,8 +1,11 @@
 <!-- markdownlint-disable -->
 <p align="center">
   <!-- github-banner-start -->
-  <img src="https://raw.githubusercontent.com/litestar-org/branding/main/assets/Branding%20-%20SVG%20-%20Transparent/asyncPG%20-%20Banner%20-%20Inline%20-%20Light.svg#gh-light-mode-only" alt="Litestar Logo - Light" width="100%" height="auto" />
-  <img src="https://raw.githubusercontent.com/litestar-org/branding/main/assets/Branding%20-%20SVG%20-%20Transparent/asyncPG%20-%20Banner%20-%20Inline%20-%20Dark.svg#gh-dark-mode-only" alt="Litestar Logo - Dark" width="100%" height="auto" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/litestar-org/branding/main/assets/Branding%20-%20SVG%20-%20Transparent/asyncPG%20-%20Banner%20-%20Inline%20-%20Dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/litestar-org/branding/main/assets/Branding%20-%20SVG%20-%20Transparent/asyncPG%20-%20Banner%20-%20Inline%20-%20Light.svg">
+    <img alt="Advanced Alchemy Logo" src="https://raw.githubusercontent.com/litestar-org/branding/main/assets/Branding%20-%20SVG%20-%20Transparent/asyncPG%20-%20Banner%20-%20Inline%20-%20Light.svg" width="100%" height="auto" />
+  </picture>
   <!-- github-banner-end -->
 </p>
 <!-- markdownlint-restore -->
